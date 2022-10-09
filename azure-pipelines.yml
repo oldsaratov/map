@@ -24,7 +24,12 @@ stages:
           inputs:
             version: '6.0.x'
             packageType: sdk
-        
+
+        - task: NodeTool@0
+          displayName: 'Install Node'
+          inputs:
+            versionSpec: '16.x'
+
         - task: DotNetCoreCLI@2
           displayName: "Build"
           inputs:
