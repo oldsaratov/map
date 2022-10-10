@@ -1,56 +1,54 @@
-import svelte from 'rollup-plugin-svelte';
+import svelte from "rollup-plugin-svelte";
+import resolve from "@rollup/plugin-node-resolve";
+import { terser } from "rollup-plugin-terser";
 import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
-import livereload from 'rollup-plugin-livereload';
-import {terser} from 'rollup-plugin-terser';
-import css from 'rollup-plugin-css-only';
+import copy from "rollup-plugin-copy";
+import fs from "fs";
+import posthtml from "posthtml";
+import { hash } from "posthtml-hash";
+import rimraf from "rimraf";
+
+const OUT_DIR = 'wwwroot';
+const OUT_FILE = `${OUT_DIR}/index.html`;
+
+const hashStatic = () => ({
+    name: 'hash-static',
+    buildStart: () => rimraf.sync(OUT_DIR),
+    writeBundle: () => {
+        posthtml([hash({ path: OUT_DIR })])
+            .process(fs.readFileSync(OUT_FILE, 'utf-8'))
+            .then((result) => fs.writeFileSync(OUT_FILE, result.html));
+    },
+});
 
 const production = !process.env.ROLLUP_WATCH;
 
-function serve() {
-    let server;
-
-    function toExit() {
-        if (server) server.kill(0);
-    }
-
-    return {
-        writeBundle() {
-            if (server) return;
-            server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-                stdio: ['ignore', 'inherit', 'inherit'],
-                shell: true
-            });
-
-            process.on('SIGTERM', toExit);
-            process.on('exit', toExit);
-        }
-    };
-}
-
 export default {
-    input: 'wwwroot/main.js',
+    input: `webapp/main.js`,
     output: {
-        sourcemap: true,
+        sourcemap: false,
         format: 'iife',
         name: 'app',
-        file: 'wwwroot/build/bundle.js'
+        file: `${OUT_DIR}/bundle.[hash].js`,
     },
     plugins: [
+        copy({ targets: [
+                { src: 'webapp/index.template.html', dest: OUT_DIR, rename: 'index.html' },
+                { src: 'webapp/global.css', dest: OUT_DIR }
+            ] }),
         svelte({
             compilerOptions: {
-                dev: !production
-            }
+                dev: !production,
+            },
+            emitCss: false,
         }),
-        css({output: 'bundle.css'}),
+        commonjs(),
         resolve({
             browser: true,
             dedupe: ['svelte']
         }),
-        commonjs(),
-        !production && serve(),
-        !production && livereload('wwwroot'),
-        production && terser()
+        production && terser(),
+        hashStatic(),    
     ],
     watch: {
         clearScreen: false

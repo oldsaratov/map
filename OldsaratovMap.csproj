@@ -19,6 +19,45 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\build\bundle.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\build\bundle.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\build\bundle.js.map" />
+      <_ContentIncludedByDefault Remove="wwwroot\build\bundle.976119645a11bf8ae969.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\build\index.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="webapp\App.svelte">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="webapp\global.css">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="webapp\index.template.html">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="webapp\main.js">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="webapp\MarkerPopup.svelte">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="webapp\markers.js">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot" />
+    </ItemGroup>
+
     <Target Name="Rollup" BeforeTargets="Build">
         <Exec Command="npm run build" />
     </Target>

@@ -1,6 +1,7 @@
 using H3;
 using H3.Extensions;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.FileProviders;
 using NetTopologySuite;
 using NetTopologySuite.Features;
 using OldsaratovMap;
@@ -47,7 +48,7 @@ app.MapGet("api/map", (double east, double north, double west, double south, int
             var first = top10.First();
             var count = cluster.Count();
 
-            var rotation = count == 1 ? first.Rotation : 0;
+            var rotation = count == 1 ? first.Rotation : null;
             var period = count == 1 ? Helpers.GetPeriodCode(first.PeriodFrom, first.PeriodTo) : byte.MinValue;
 
             var attributes = new Dictionary<string, object?>

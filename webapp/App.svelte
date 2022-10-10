@@ -59,14 +59,18 @@
     }
 
     function arrowIcon(feature) {
-        const rotationClassName = 'rotation-' + feature.properties.rotation;
+        const rotationClassName = feature.properties.rotation ? 'rotation-' + feature.properties.rotation : "";
         const periodClassName = 'period-' + feature.properties.period;
 
-        let html = `<div class="${rotationClassName} ${periodClassName}">${markerIcons.arrow}</div>`;
+        let html =  `
+            <div class="${rotationClassName} ${periodClassName}">
+                ${feature.properties.rotation != null ? markerIcons.arrow : markerIcons.empty}
+            </div>`;
 
         return L.divIcon({
             html,
-            className: 'map-marker arrow-marker'
+            iconSize: [15, 15],
+            className: 'map-marker'
         });
     }
 
@@ -139,12 +143,6 @@
 </script>
 
 <style>
-    .map :global(.map-marker) {
-        width: 15px;
-        height: 15px;
-        transform: translateX(-50%) translateY(-25%);
-    }
-
     :global(.cluster) {
         background: #2d84c8;
         border-radius: 50%;
@@ -268,43 +266,43 @@
     }
 
     :global(.period-1 .marker-color) {
-        fill: #790000;
+        fill: #710a0f;
     }
 
     :global(.period-2 .marker-color) {
-        fill: #9E000C;
+        fill: #b3191c;
     }
 
     :global(.period-3 .marker-color) {
-        fill: #C20018;
+        fill: #c1381f;
     }
 
     :global(.period-4 .marker-color) {
-        fill: #DC3B37;
+        fill: #dd462b;
     }
 
     :global(.period-5 .marker-color) {
-        fill: #F57656;
+        fill: #e57b37;
     }
 
     :global(.period-6 .marker-color) {
-        fill: #80DD91;
+        fill: #d8ab3d;
     }
 
     :global(.period-7 .marker-color) {
-        fill: #40BB75;
+        fill: #cbda42;
     }
 
     :global(.period-8 .marker-color) {
-        fill: #28A264;
+        fill: #a0d034;
     }
 
     :global(.period-9 .marker-color) {
-        fill: #108852;
+        fill: #75c626;
     }
 
     :global(.period-10 .marker-color) {
-        fill: #00663C;
+        fill: #49BC17;
     }
 </style>
 

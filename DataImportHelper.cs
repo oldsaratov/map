@@ -62,11 +62,11 @@ public static class DataImportHelper
         return list;
     }
     
-    private static short GetMarkerRotation(string direction)
+    private static short? GetMarkerRotation(string direction)
     {
         return direction switch
         {
-            "" => 0,
+            "" => null,
             "18" => 0,
             "25" => 45,
             "21" => 90,

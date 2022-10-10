@@ -10,7 +10,7 @@ public class Photo
     public string PhotoUrl { get; set; }
     public short? PeriodFrom { get; set; }
     public short? PeriodTo { get; set; }
-    [JsonIgnore] public short Rotation { get; set; }
+    [JsonIgnore] public short? Rotation { get; set; }
     public string Url { get; set; }
     [JsonIgnore] public Point Location { get; set; }
     [JsonIgnore] public DateTime LastUpdate { get; set; }
