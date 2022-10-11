@@ -2,22 +2,39 @@
 
     import L from 'leaflet';
     import MarkerPopup from './MarkerPopup.svelte';
+    import {Yandex} from "./Yandex";
     import * as markerIcons from './markers.js';
 
     let map;
     let markerLayers;
 
     const initialView = [51.5268, 46.0001];
+    const accessToken = "pk.eyJ1Ijoib2tvbG9iYXhhIiwiYSI6Imt0RUVsVUkifQ.DjDf-hCRChe7FkfvguDmfw";
 
-    function createMap(container) {
-        let m = L.map(container, {preferCanvas: true}).setView(initialView, 14);
-        L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    function createMap(container)
+    {
+        let mapboxLayer = L.tileLayer(
+            `//api.mapbox.com/styles/v1/okolobaxa/ckf6mp05x0ce519s9dotul5a3/tiles/{z}/{x}/{y}?access_token=${accessToken}`,
             {
+                tileSize: 512,
+                zoomOffset: -1,
                 minZoom: 10,
                 maxZoom: 20,
             }
-        ).addTo(m);
+        );
+
+        let yandexSatellite = new Yandex('yandex#hybrid')
+
+        let m = L.map(container, {
+            preferCanvas: true,
+            layers: [mapboxLayer]
+        }).setView(initialView, 14);
+
+        let baseLayers = {
+            'Карта ФСС': mapboxLayer,
+            'Яндекс.Карта (спутник)': yandexSatellite
+        };
+        L.control.layers(baseLayers).addTo(m);
 
         m.on('moveend', function () {
             const bbox = map.getBounds();
@@ -26,6 +43,7 @@
 
         return m;
     }
+
 
     function bindPopup(marker, createFn) {
         let popupComponent;
