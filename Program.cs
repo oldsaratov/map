@@ -1,7 +1,6 @@
 using H3;
 using H3.Extensions;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.FileProviders;
 using NetTopologySuite;
 using NetTopologySuite.Features;
 using OldsaratovMap;
@@ -35,12 +34,17 @@ app.UseCors();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("api/map", (double east, double north, double west, double south, int zoom) =>
+app.MapGet("api/map", (double east, double north, double west, double south, int zoom, short from, short to) =>
 {
     var bbox = Helpers.CreateBbox(east, north, west, south, geometryFactory);
 
     var clusters = collection
         .Where(p => p.Location.Within(bbox))
+        .Where(x =>
+            (!x.PeriodFrom.HasValue && !x.PeriodTo.HasValue) || //records without dates
+            (!x.PeriodFrom.HasValue && x.PeriodTo.HasValue && x.PeriodTo.Value > from) || //records without from
+            (!x.PeriodTo.HasValue && x.PeriodFrom.HasValue && x.PeriodFrom.Value < to) || //records without to
+            (x.PeriodFrom.HasValue && x.PeriodFrom.Value >= from && x.PeriodTo.HasValue && x.PeriodTo.Value <= to))
         .GroupByH3Index(Helpers.GetH3IndexResolutionByZoom(zoom))
         .Select(cluster =>
         {

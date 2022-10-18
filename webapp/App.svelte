@@ -2,17 +2,23 @@
 
     import L from 'leaflet';
     import MarkerPopup from './MarkerPopup.svelte';
+    import Toolbar from './Toolbar.svelte';
     import {Yandex} from "./Yandex";
     import * as markerIcons from './markers.js';
+    import Sidebar from "./Sidebar.svelte";
 
     let map;
     let markerLayers;
 
     const initialView = [51.5268, 46.0001];
+    let bound = [1863, new Date().getFullYear()];
     const accessToken = "pk.eyJ1Ijoib2tvbG9iYXhhIiwiYSI6Imt0RUVsVUkifQ.DjDf-hCRChe7FkfvguDmfw";
 
-    function createMap(container)
-    {
+    let timeout = setTimeout(function () {
+        map.invalidateSize();
+    }, 3000);
+
+    function createMap(container) {
         let mapboxLayer = L.tileLayer(
             `//api.mapbox.com/styles/v1/okolobaxa/ckf6mp05x0ce519s9dotul5a3/tiles/{z}/{x}/{y}?access_token=${accessToken}`,
             {
@@ -43,7 +49,6 @@
 
         return m;
     }
-
 
     function bindPopup(marker, createFn) {
         let popupComponent;
@@ -80,7 +85,7 @@
         const rotationClassName = feature.properties.rotation ? 'rotation-' + feature.properties.rotation : "";
         const periodClassName = 'period-' + feature.properties.period;
 
-        let html =  `
+        let html = `
             <div class="${rotationClassName} ${periodClassName}">
                 ${feature.properties.rotation != null ? markerIcons.arrow : markerIcons.empty}
             </div>`;
@@ -116,6 +121,16 @@
         return marker;
     }
 
+    $: bound && reDrawOnRangeChanged();
+    
+    function reDrawOnRangeChanged() {
+        
+        if (map) {
+            const bbox = map.getBounds();
+            fillMap(bbox);
+        }
+    }
+
     function fillMap(bbox) {
         if (markerLayers) {
             markerLayers.clearLayers()
@@ -129,6 +144,8 @@
             west: bbox.getWest(),
             south: bbox.getSouth(),
             zoom: map.getZoom(),
+            from: bound[0],
+            to: bound[1],
         }))
             .then((response) => response.json())
             .then((data) => {
@@ -146,7 +163,7 @@
 
     function init(container) {
         map = createMap(container);
-
+        
         const bbox = map.getBounds();
         fillMap(bbox);
 
@@ -322,9 +339,34 @@
     :global(.period-10 .marker-color) {
         fill: #49BC17;
     }
+    
+    .main {
+        height: 100%;
+    }
+    
+    .map-container {
+        display: flex;
+        height: 100%;
+    }
+
+    .map {
+        flex-grow: 1;
+        order: 1;
+    }
 </style>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
       integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
       crossorigin=""/>
-<div class="map" style="height:100%;width:100%" use:init/>
+<div class="main">
+
+    <Toolbar bind:bound />
+
+    <div class='map-container'>
+        <div id="map" class="map flex-element" use:init></div>
+
+<!--         <Sidebar />-->
+
+    </div>
+
+</div>
