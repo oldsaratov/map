@@ -1,76 +1,37 @@
 <script>
-
-    export let feature;
+    import Period from "./Period.svelte";
+    
+    export let item;
 
 </script>
 
 <div class="popup">
-    {#each feature.properties.items as item, i}
-        <div class="photo-container">
-            <div class="img-container"><a target="_blank" href="{item.url}"><img src="{item.photoUrl}" alt="{item.title}"></a></div>
-            <div class="text-container">
-                <p>{item.title}</p>
-                {#if !item.periodFrom && !item.periodTo}
-                    <span class="year-container">Дата съемки неизвестна</span>
-                {:else}
-                    {#if item.periodFrom === item.periodTo}
-                        <span class="year-container">{item.periodFrom} год</span>
-                    {:else}
-                        {#if item.periodFrom && !item.periodTo}
-                            <span class="year-container">{item.periodFrom} – ? годы</span>
-                        {:else}
-                            {#if !item.periodFrom && item.periodTo}
-                                <span class="year-container">? – {item.periodTo} годы</span>
-                            {:else}
-                                <span class="year-container">{item.periodFrom} – {item.periodTo} годы</span>
-                            {/if}
-                        {/if}
-                    {/if}
-                {/if}
-            </div>
-        </div>
-    {/each}
-    {#if feature.properties.count > 1}
-        <div class="popup-footer">
-            <p>{feature.properties.count} фото</p>
-        </div>
-    {/if}
+    <div class="img-container">
+        <a target="_blank" href="{item.url}">
+            <img src="{item.photoUrl}" alt="{item.title}">
+        </a>
+    </div>
+    <div>
+        <h3>{item.title}</h3>
+    </div>
+    <div>
+        <Period bind:periodFrom={item.periodFrom} bind:periodTo={item.periodTo} />
+    </div>
 </div>
 
 <style>
     .popup {
-        width: 250px;
-    }
-
-    .photo-container {
-        background-color: white;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        width: 100%;
-    }
-
-    .img-container {
-        height: 60px;
-        margin-right: 5px;
-    }
-
-    .text-container {
+        width: 210px;
         display: flex;
         flex-direction: column;
     }
-
-    .year-container {
-        font-size: .875rem;
-        line-height: 1.25rem;
-        font-weight: 400;
-        letter-spacing: .0178571429em;
-        text-decoration: inherit;
-        text-transform: inherit;
-        opacity: .6;
-    }
-
-    .popup-footer {
-        text-align: center;
+    
+    .img-container img {
+        -o-object-fit: cover;
+        object-fit: cover;
+        border-radius: 4px;
+        height: 160px;
+        width: 100%;
+        background: #e6e3e3;
     }
 </style>

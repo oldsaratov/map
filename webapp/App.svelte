@@ -9,14 +9,12 @@
 
     let map;
     let markerLayers;
+    let selectedPhoto;
+    let sidebarMode = false;
 
     const initialView = [51.5268, 46.0001];
-    let bound = [1863, new Date().getFullYear()];
+    let period = [1863, new Date().getFullYear()];
     const accessToken = "pk.eyJ1Ijoib2tvbG9iYXhhIiwiYSI6Imt0RUVsVUkifQ.DjDf-hCRChe7FkfvguDmfw";
-
-    let timeout = setTimeout(function () {
-        map.invalidateSize();
-    }, 3000);
 
     function createMap(container) {
         let mapboxLayer = L.tileLayer(
@@ -43,8 +41,7 @@
         L.control.layers(baseLayers).addTo(m);
 
         m.on('moveend', function () {
-            const bbox = map.getBounds();
-            fillMap(bbox);
+            fillMap();
         });
 
         return m;
@@ -100,38 +97,72 @@
     function createMarker(feature) {
         let icon = feature.properties.count === 1 ? arrowIcon(feature) : clusterIcon(feature);
         let marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon});
-        if (feature.properties.count <= 5) {
-            bindPopup(marker, (m) => {
-                return new MarkerPopup({
-                    target: m,
-                    props: {
-                        feature
-                    }
-                });
-            });
-        } else {
+
+        if (feature.properties.count > 1) {
             marker.on('click', (e) => {
                 map.panTo(e.target.getLatLng());
                 setTimeout(() => {
                     map.zoomIn();
                 }, 500);
             });
+        } else {
+            if (sidebarMode) {
+                marker.on('click', (e) => {
+                    selectedPhoto = feature.properties.items[0];
+                });
+            } else {
+                bindPopup(marker, (m) => {
+                    selectedPhoto = feature.properties.items[0];
+                    
+                    return new MarkerPopup({
+                        target: m,
+                        props: {
+                            item: feature.properties.items[0]
+                        }
+                    });
+                });
+            }
         }
 
         return marker;
     }
 
-    $: bound && reDrawOnRangeChanged();
+    function onRangeChanged(e) {
+        period = e.detail.bound;
+        if (map) {
+            fillMap();
+        }
+    }
     
-    function reDrawOnRangeChanged() {
+    function onSidebarClosed(e) {
+        sidebarMode = false;
+        selectedPhoto = null;
         
         if (map) {
-            const bbox = map.getBounds();
-            fillMap(bbox);
+            fillMap();
         }
     }
 
-    function fillMap(bbox) {
+    function onSidebarStateChanged(e) {
+        sidebarMode = e.detail.active;
+
+        if (!sidebarMode) {
+            selectedPhoto = null;
+        }
+
+        if (map) {
+            map.invalidateSize(true);
+            fillMap();
+        }
+    }
+
+    function fillMap() {
+        if (!map) {
+            return;
+        }
+
+        const bbox = map.getBounds();
+
         if (markerLayers) {
             markerLayers.clearLayers()
         }
@@ -144,16 +175,14 @@
             west: bbox.getWest(),
             south: bbox.getSouth(),
             zoom: map.getZoom(),
-            from: bound[0],
-            to: bound[1],
+            from: period[0],
+            to: period[1],
         }))
             .then((response) => response.json())
             .then((data) => {
-                let myLayerOptions = {
+                const geoJson = L.geoJSON(data, {
                     pointToLayer: createMarker
-                };
-
-                var geoJson = L.geoJSON(data, myLayerOptions);
+                });
 
                 markerLayers.addLayer(geoJson);
             });
@@ -163,9 +192,8 @@
 
     function init(container) {
         map = createMap(container);
-        
-        const bbox = map.getBounds();
-        fillMap(bbox);
+
+        fillMap();
 
         return {
             destroy: () => {
@@ -339,11 +367,11 @@
     :global(.period-10 .marker-color) {
         fill: #49BC17;
     }
-    
+
     .main {
         height: 100%;
     }
-    
+
     .map-container {
         display: flex;
         height: 100%;
@@ -360,12 +388,14 @@
       crossorigin=""/>
 <div class="main">
 
-    <Toolbar bind:bound />
+    <Toolbar on:rangeChanged={onRangeChanged} on:sidebarStateChanged={onSidebarStateChanged} bind:sidebarMode/>
 
-    <div class='map-container'>
+    <div class="map-container">
         <div id="map" class="map flex-element" use:init></div>
 
-<!--         <Sidebar />-->
+        {#if sidebarMode}
+            <Sidebar bind:selectedPhoto on:sidebarClosed={onSidebarClosed} />
+        {/if}
 
     </div>
 

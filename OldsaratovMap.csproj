@@ -14,12 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="photos.csv">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
       <_ContentIncludedByDefault Remove="wwwroot\build\bundle.css" />
       <_ContentIncludedByDefault Remove="wwwroot\build\bundle.js" />
       <_ContentIncludedByDefault Remove="wwwroot\build\bundle.js.map" />
@@ -52,6 +46,10 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
+      <Content Include="webapp\Period.svelte">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
       <Content Include="webapp\Sidebar.svelte">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -64,6 +62,12 @@
 
     <ItemGroup>
       <Folder Include="wwwroot" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="photos.csv">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <Target Name="Rollup" BeforeTargets="Build">

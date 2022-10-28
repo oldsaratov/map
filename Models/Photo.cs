@@ -5,7 +5,7 @@ namespace OldsaratovMap.Data;
 
 public class Photo
 {
-    [JsonIgnore] public int Id { get; set; }
+    public int Id { get; set; }
     public string Title { get; set; }
     public string PhotoUrl { get; set; }
     public short? PeriodFrom { get; set; }
