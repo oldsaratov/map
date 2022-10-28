@@ -60,13 +60,14 @@
 <style>
     .sidebar {
         position: absolute;
-        top: 110px;
+        top: 100px;
         left: 0;
         background: white;
         width: 400px;
-        height: calc(100vh - 110px);
+        height: calc(100vh - 100px);
         display: flex;
-        border-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-top-right-radius: 8px;
         box-shadow: 0 3px 14px rgb(0 0 0 / 40%);
         z-index: 9999;
     }

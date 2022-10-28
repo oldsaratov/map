@@ -374,7 +374,7 @@
 
     .map-container {
         display: flex;
-        height: 100%;
+        height: calc(100vh - 100px);
     }
 
     .map {

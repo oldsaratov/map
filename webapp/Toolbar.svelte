@@ -44,16 +44,20 @@
 
 <style>
     .toolbar {
-        height: 50px;
-        width: 100%;
-        margin-top: 40px;
-        margin-bottom: 20px;
+        height: 100px;
         display: flex;
         flex-direction: row;
         align-items: center;
+        z-index: 9999;
+        box-shadow: -3px 12px 10px -13px rgba(166 166 166 / 50%);
+        padding-left: 10px;
+        padding-right: 10px;
+        position: relative;
     }
 
     .toolbar-slider {
+        margin-top: 50px;
+        margin-bottom: 50px;
         width: 100%;
     }
 
