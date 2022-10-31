@@ -9,11 +9,15 @@
 
     let map;
     let markerLayers;
-    let selectedPhoto;
-    let sidebarMode = false;
+    let currentFeature;
+    let currentMarker;
+    let sidebarActive = false;
+
+    const markersMap = new Map();
 
     const initialView = [51.5268, 46.0001];
     let period = [1863, new Date().getFullYear()];
+
     const accessToken = "pk.eyJ1Ijoib2tvbG9iYXhhIiwiYSI6Imt0RUVsVUkifQ.DjDf-hCRChe7FkfvguDmfw";
 
     function createMap(container) {
@@ -41,8 +45,11 @@
         L.control.layers(baseLayers).addTo(m);
 
         m.on('moveend', function () {
-            fillMap();
+            updateMap();
         });
+
+        markerLayers = L.layerGroup();
+        markerLayers.addTo(m);
 
         return m;
     }
@@ -53,14 +60,19 @@
             let container = L.DomUtil.create('div');
             popupComponent = createFn(container);
             return container;
-        });
+        }).openPopup();
 
         marker.on('popupclose', () => {
+            if (!sidebarActive) {
+                setCurrent(null, null);
+            }
+            
             if (popupComponent) {
                 let old = popupComponent;
                 popupComponent = null;
                 // Wait to destroy until after the fadeout completes.
                 setTimeout(() => {
+                    marker.unbindPopup();
                     old.$destroy();
                 }, 500);
             }
@@ -78,51 +90,65 @@
         });
     }
 
-    function arrowIcon(feature) {
+    function arrowIcon(feature, isCurrent) {
         const rotationClassName = feature.properties.rotation ? 'rotation-' + feature.properties.rotation : "";
         const periodClassName = 'period-' + feature.properties.period;
+        const rippleClassName = isCurrent ? 'ripple' : '';
 
         let html = `
-            <div class="${rotationClassName} ${periodClassName}">
-                ${feature.properties.rotation != null ? markerIcons.arrow : markerIcons.empty}
-            </div>`;
+                <div class="${rotationClassName} ${periodClassName}">
+                    ${feature.properties.rotation != null ? markerIcons.arrow : markerIcons.empty}
+                    <div class="${periodClassName} ${rippleClassName}"></div>
+                </div>
+            `;
 
         return L.divIcon({
             html,
             iconSize: [15, 15],
-            className: 'map-marker'
+            className: 'map-marker',
+            iconAnchor: [7.5, 10],
+            popupAnchor: [1, -1]
         });
     }
 
+    function setCurrent(marker, feature) {
+        if (currentMarker && currentFeature) {
+            currentMarker.setIcon(arrowIcon(currentFeature, false));
+        }
+
+        currentMarker = marker;
+        currentFeature = feature;
+
+        if (currentMarker && currentFeature) {
+            currentMarker.setIcon(arrowIcon(currentFeature, true));
+        }
+    }
+
     function createMarker(feature) {
-        let icon = feature.properties.count === 1 ? arrowIcon(feature) : clusterIcon(feature);
+        let icon = feature.properties.count === 1 ? arrowIcon(feature, false) : clusterIcon(feature);
         let marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {icon});
 
-        if (feature.properties.count > 1) {
-            marker.on('click', (e) => {
+        marker.on('click', (e) => {
+            if (feature.properties.count > 1) {
                 map.panTo(e.target.getLatLng());
                 setTimeout(() => {
                     map.zoomIn();
                 }, 500);
-            });
-        } else {
-            if (sidebarMode) {
-                marker.on('click', (e) => {
-                    selectedPhoto = feature.properties.items[0];
-                });
             } else {
-                bindPopup(marker, (m) => {
-                    selectedPhoto = feature.properties.items[0];
-                    
-                    return new MarkerPopup({
-                        target: m,
-                        props: {
-                            item: feature.properties.items[0]
-                        }
+                setCurrent(e.target, feature);
+
+                if (!sidebarActive) {
+                    bindPopup(marker, (m) => {
+                        return new MarkerPopup({
+                            target: m,
+                            props: {
+                                item: feature.properties.items[0]
+                            }
+                        });
                     });
-                });
+                }
             }
-        }
+        });
 
         return marker;
     }
@@ -130,44 +156,46 @@
     function onRangeChanged(e) {
         period = e.detail.bound;
         if (map) {
-            fillMap();
+            updateMap();
         }
     }
-    
-    function onSidebarClosed(e) {
-        sidebarMode = false;
-        selectedPhoto = null;
-        
+
+    function onDisplayModeChanged(e) {
+        sidebarActive = e.detail.active;
+        if (!sidebarActive) {
+            setCurrent(null, null);
+        } else {
+            if (map) {
+                if (currentMarker) {
+                    map.panTo(currentMarker.getLatLng());
+                    setCurrent(currentMarker, currentFeature);
+                } else {
+                    if (currentFeature) {
+                        map.panTo([currentFeature.geometry.coordinates[1], currentFeature.geometry.coordinates[0]]);
+                        setTimeout(() => {
+                            if (!currentMarker) {
+                                currentMarker = markersMap.get(currentFeature.properties.key);
+                            }
+
+                            setCurrent(currentMarker, currentFeature);
+                        }, 500);
+                    }
+                }
+            }
+        }
+
         if (map) {
-            fillMap();
+            map.closePopup();
+            updateMap();
         }
     }
 
-    function onSidebarStateChanged(e) {
-        sidebarMode = e.detail.active;
-
-        if (!sidebarMode) {
-            selectedPhoto = null;
-        }
-
-        if (map) {
-            map.invalidateSize(true);
-            fillMap();
-        }
-    }
-
-    function fillMap() {
+    function updateMap() {
         if (!map) {
             return;
         }
 
         const bbox = map.getBounds();
-
-        if (markerLayers) {
-            markerLayers.clearLayers()
-        }
-
-        markerLayers = L.layerGroup();
 
         fetch('/api/map?' + new URLSearchParams({
             east: bbox.getEast(),
@@ -180,20 +208,36 @@
         }))
             .then((response) => response.json())
             .then((data) => {
-                const geoJson = L.geoJSON(data, {
-                    pointToLayer: createMarker
-                });
+                if (data.features) {
+                    const actualMarkerIds = new Set();
 
-                markerLayers.addLayer(geoJson);
+                    data.features.forEach(feature => {
+                        const key = feature.properties.key;
+                        if (!markersMap.has(key)) {
+                            const marker = createMarker(feature);
+
+                            markersMap.set(key, marker);
+
+                            markerLayers.addLayer(marker);
+                        }
+
+                        actualMarkerIds.add(key);
+                    });
+
+                    for (const [key, marker] of markersMap) {
+                        if (!actualMarkerIds.has(key)) {
+                            markerLayers.removeLayer(marker)
+                            markersMap.delete(key);
+                        }
+                    }
+                }
             });
-
-        markerLayers.addTo(map);
     }
 
     function init(container) {
         map = createMap(container);
 
-        fillMap();
+        updateMap();
 
         return {
             destroy: () => {
@@ -293,79 +337,102 @@
     }
 
     :global(.rotation-0) {
-        transform: rotate(0deg);
+        transform-origin: center;
+        transform: rotate(360deg);
     }
 
     :global(.rotation-45) {
+        transform-origin: center;
         transform: rotate(45deg);
     }
 
     :global(.rotation-90) {
+        transform-origin: center;
         transform: rotate(90deg);
     }
 
     :global(.rotation-135) {
+        transform-origin: center;
         transform: rotate(135deg);
     }
 
     :global(.rotation-180) {
+        transform-origin: center;
         transform: rotate(180deg);
     }
 
     :global(.rotation-225) {
+        transform-origin: center;
         transform: rotate(225deg);
     }
 
     :global(.rotation-270) {
+        transform-origin: center;
         transform: rotate(270deg);
     }
 
     :global(.rotation-315) {
+        transform-origin: center;
         transform: rotate(315deg);
     }
 
-    :global(.period-0 .marker-color) {
+    :global(.period-0 .marker-color, .period-0.ripple) {
         fill: #bebebe;
+        border-color: #bebebe;
     }
 
-    :global(.period-1 .marker-color) {
+    :global(.period-1 .marker-color, .period-1.ripple) {
         fill: #710a0f;
+        border-color: #710a0f;
     }
 
-    :global(.period-2 .marker-color) {
+    :global(.period-2 .marker-color, .period-2.ripple) {
         fill: #b3191c;
+        border-color: #b3191c;
     }
 
-    :global(.period-3 .marker-color) {
+    :global(.period-3 .marker-color, .period-3.ripple) {
         fill: #c1381f;
+        border-color: #c1381f;
     }
 
-    :global(.period-4 .marker-color) {
+    :global(.period-4 .marker-color, .period-4.ripple) {
         fill: #dd462b;
+        border-color: #dd462b;
     }
 
-    :global(.period-5 .marker-color) {
+    :global(.period-5 .marker-color, .period-5.ripple) {
         fill: #e57b37;
+        border-color: #e57b37;
     }
 
-    :global(.period-6 .marker-color) {
+    :global(.period-6 .marker-color, .period-6.ripple) {
         fill: #d8ab3d;
+        border-color: #d8ab3d;
     }
 
-    :global(.period-7 .marker-color) {
+    :global(.period-7 .marker-color, .period-7.ripple) {
         fill: #cbda42;
+        border-color: #cbda42;
     }
 
-    :global(.period-8 .marker-color) {
+    :global(.period-8 .marker-color, .period-8.ripple) {
         fill: #a0d034;
+        border-color: #a0d034;
     }
 
-    :global(.period-9 .marker-color) {
+    :global(.period-9 .marker-color, .period-9.ripple) {
         fill: #75c626;
+        border-color: #75c626;
     }
 
-    :global(.period-10 .marker-color) {
+    :global(.period-10 .marker-color, .period-10.ripple) {
         fill: #49BC17;
+        border-color: #49BC17;
+    }
+
+    :global(.arrow-icon) {
+        fill: white;
     }
 
     .main {
@@ -381,6 +448,33 @@
         flex-grow: 1;
         order: 1;
     }
+
+    :global(.ripple) {
+        border-width: 3px;
+        border-style: solid;
+        border-radius: 75px;
+        height: 75px;
+        width: 75px;
+        animation: pulsate 2s ease-out;
+        animation-iteration-count: infinite;
+        position: absolute;
+        bottom: -30px;
+        right: -34px;
+    }
+
+    @-webkit-keyframes pulsate {
+        0% {
+            transform: scale(0.1, 0.1);
+            opacity: 0.0;
+        }
+        50% {
+            opacity: 1.0;
+        }
+        100% {
+            transform: scale(1.2, 1.2);
+            opacity: 0.0;
+        }
+    }
 </style>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
@@ -388,13 +482,13 @@
       crossorigin=""/>
 <div class="main">
 
-    <Toolbar on:rangeChanged={onRangeChanged} on:sidebarStateChanged={onSidebarStateChanged} bind:sidebarMode/>
+    <Toolbar on:rangeChanged={onRangeChanged} on:displayModeChanged={onDisplayModeChanged} bind:sidebarActive/>
 
     <div class="map-container">
         <div id="map" class="map flex-element" use:init></div>
 
-        {#if sidebarMode}
-            <Sidebar bind:selectedPhoto on:sidebarClosed={onSidebarClosed} />
+        {#if sidebarActive}
+            <Sidebar bind:currentFeature on:sidebarClosed={onDisplayModeChanged}/>
         {/if}
 
     </div>

@@ -6,14 +6,14 @@
     const dispatch = createEventDispatcher();
 
     let bound = [1863, new Date().getFullYear()];
-    export let sidebarMode = false;
+    export let sidebarActive = false;
 
-    function onSidebarStateChanged(e) {
-        dispatch('sidebarStateChanged', {
+    function onDisplayModeChanged(e) {
+        dispatch('displayModeChanged', {
             active: e.detail.checked
         });
         
-        sidebarMode = e.detail.checked;
+        sidebarActive = e.detail.checked;
     }
     
     function onRangeChanged() {
@@ -35,7 +35,7 @@
                      on:stop={onRangeChanged}/>
     </div>
     <div class="toolbar-toggle">
-        <Switch on:change={onSidebarStateChanged} checked={sidebarMode} onColor="#888888">
+        <Switch on:change={onDisplayModeChanged} checked={sidebarActive} onColor="#888888">
             <img title="Всплывающее окно" class="toggle-icon" slot="unCheckedIcon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABmJLR0QA/wD/AP+gvaeTAAACDklEQVR4nO2bvUoDQRRGTyQJ2AjWtjYWFmKlxF5RbAVbK3vBXsTEPp2ddr6AhVhJHsDGB/AXEUREsFDUYiYkxjG56u7c7OYeGDbM3N395mN29s5mFwzDML5SBnaBG+AjJ+UaqPm+9aTWB4LTKlWJAdc+eFYSnBEqtEZCT5pu5Y1gv4YEOzaA0xzUiel0KuRcXupEIyDXFAUxDeA9B3VibBIcJLpdAnkcBd+wEdClrRBNRRyCI3rgR4AZoC1AGzNAW4A2ZsA/9l0EroBLYCEZOf2BdC1w2RZ7EWhvtLU3y2mP9r8U6bo/+logZGLnc4a0zvPvA0oOuoAbBRfAfNIiUkC8yrXl8CBhBmgL0MbygABp5gFplEzlAZk4j+UB0sCMYXlACDNAW4A2lgcE6Jc84M//7/9A5vIAtTuR5QHSwIxheUAIM0BbgDZmgLYAbcwAbQHahAy48dtKTCEpM+e3opelqyT7zO4OqAPDvxA8ChwADwlr2ZGcvOxNaL42n1Q5QfbBwghwlvC5r3znRR9MJM0ELTP36f72WRE48rHnwFjq6iIxCTziOrbVJa7uY+6B8Qi6ojIPvOI6uB5o3/BtL8BMRF1RWcN18g1Ybqtf8nXvwKqCrqhs40x4AqaAaeDZ120q6opGATcZfuAmx1v/e09TVGzKwDGt29QRUNIQovlCdAlYwV33h7g5wDAi8wmt/Leysjc8EgAAAABJRU5ErkJggg==">
             <img title="Боковая панель" class="toggle-icon" slot="checkedIcon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAABmJLR0QA/wD/AP+gvaeTAAABWElEQVR4nO3WMU4DMRBG4QfiBFCSmpZrEHFBzkBKWioQ9LSUCSfIAYBig6BZBpjYeNfvk6ItNpGtief3gCRJkiRJ0p4tgBWwBd46/Yw6+kHxnoDj4HsasWL4B26A0wrrPQD3Fdap5qNtaxQPhuLdVVqrijADenf43xuYutYKOLkMbK2Ar8wsMszAQOYEXgIvwAZY7mc78/PdCdx8eb8e+d1vJ3wzMKmrDFwynMI1cFFtRxPjJRJorYXNwKSuMlA4BxbnHBgwAwtzDkzyEgm01sJmYFJXGSicA4tzDgyYgYU5ByZ5iQRaa2EzMKmrDBTOgcU5BwbMwMKcA5O8RAKttbAZmNRVBgrnwOKcAwNmYGHOgUleIoHWWtgMTOoqA0V7J3ByogJud89F6Y3szC4Db3fPK+oUcXIZeBC8PwMegZMKe2nZaJ2iE/gMnAPXfLazJEmSJEmS/uodb9wAm8SUICoAAAAASUVORK5CYII=">
         </Switch>

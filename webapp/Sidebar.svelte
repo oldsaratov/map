@@ -1,16 +1,17 @@
 <script>
     import Period from "./Period.svelte";
     import {createEventDispatcher} from 'svelte';
+    import { LottiePlayer } from '@lottiefiles/svelte-lottie-player';
 
     const dispatch = createEventDispatcher();
-    export let selectedPhoto;
+    export let currentFeature;
     let details;
 
-    $:selectedPhoto && getDetails();
+    $:currentFeature && getDetails();
 
     function getDetails() {
-        if (selectedPhoto) {
-            fetch(`https://oldsaratov.ru/api/node/${selectedPhoto.id}/`)
+        if (currentFeature) {
+            fetch(`https://oldsaratov.ru/api/node/${currentFeature.properties.items[0].id}/`)
                 .then((response) => response.json())
                 .then((data) => {
                     details = data;
@@ -20,7 +21,7 @@
 
     function onSidebarClose(e) {
         dispatch('sidebarClosed', {
-            closed: true
+            active: false
         });
     }
 
@@ -28,16 +29,16 @@
 
 <div class="sidebar">
     <div class="close"><span on:click={onSidebarClose}>×</span></div>
-    {#if selectedPhoto}
+    {#if currentFeature}
         <div class="content-container">
             <div class="item-image">
-                <h4>{selectedPhoto.title}</h4>
-                <a target="_blank" href="{selectedPhoto.url}">
-                    <img src="{selectedPhoto.photoUrl}" alt="{selectedPhoto.title}">
+                <h4>{currentFeature.properties.items[0].title}</h4>
+                <a target="_blank" href="{currentFeature.properties.items[0].url}">
+                    <img src="{currentFeature.properties.items[0].photoUrl}" alt="{currentFeature.properties.items[0].title}">
                 </a>
             </div>
             <div class="item-period">
-                <Period bind:periodFrom={selectedPhoto.periodFrom} bind:periodTo={selectedPhoto.periodTo}/>
+                <Period bind:periodFrom={currentFeature.properties.items[0].periodFrom} bind:periodTo={currentFeature.properties.items[0].periodTo}/>
             </div>
             <div class="item-description">
                 {#if details && details.body && details.body.und}
@@ -47,12 +48,24 @@
                 {/if}
             </div>
             <div class="item-footer">
-                <a class="button" target="_blank" href="{selectedPhoto.url}">Открыть ❯</a>
+                <a class="button" target="_blank" href="{currentFeature.properties.items[0].url}">Открыть ❯</a>
             </div>
         </div>
     {:else}
         <div class="empty-container">
             <p class="empty-text">Нажимите на маркер фотографии для просмотра подробностей</p>
+            <div class="empty-animation">
+                <LottiePlayer
+                        src="https://assets9.lottiefiles.com/private_files/lf30_noclpt6t.json"
+                        autoplay="{true}"
+                        loop="{true}"
+                        controls="{false}"
+                        renderer="svg"
+                        background="transparent"
+                        height="{350}"
+                        width="{350}"
+                />
+            </div>
         </div>
     {/if}
 </div>
@@ -81,6 +94,7 @@
     
     .item-image img {
         max-width: 350px;
+        min-width: 350px;
     }
     
     .item-description {
@@ -101,11 +115,15 @@
         display: flex;
         flex-direction: column;
         align-content: center;
+        align-items: center;
         padding: 0 20px 20px 20px;
     }
 
     .empty-text {
         text-align: center;
+        margin-top: 100px;
+        margin-bottom: 100px;
+        font-size: 1.25rem;
     }
 
     .close {
