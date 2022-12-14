@@ -142,7 +142,7 @@
                         return new MarkerPopup({
                             target: m,
                             props: {
-                                item: feature.properties.items[0]
+                                item: feature.properties.item
                             }
                         });
                     });

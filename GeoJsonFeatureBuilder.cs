@@ -15,13 +15,10 @@ public static class GeoJsonFeatureBuilder
         {
             return GetFeatureFromPoint(cluster.First());
         }
-        
-        var top10 = cluster.Take(5);
-        
+
         var attributes = new Dictionary<string, object?>
         {
             {AttributeConstants.FeatureAttributeCount, count},
-            {AttributeConstants.FeatureAttributeItems, top10},
             {AttributeConstants.FeatureAttributeKey, cluster.Key}
         };
 
@@ -38,7 +35,7 @@ public static class GeoJsonFeatureBuilder
         var attributes = new Dictionary<string, object?>
         {
             {AttributeConstants.FeatureAttributeCount, 1},
-            {AttributeConstants.FeatureAttributeItems, new[] {first}},
+            {AttributeConstants.FeatureAttributeItem, first},
             {AttributeConstants.FeatureAttributeRotation, rotation},
             {AttributeConstants.FeatureAttributePeriod, period},
             {AttributeConstants.FeatureAttributeKey, first.Id}

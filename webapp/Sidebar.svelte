@@ -11,7 +11,7 @@
 
     function getDetails() {
         if (currentFeature) {
-            fetch(`https://oldsaratov.ru/api/node/${currentFeature.properties.items[0].id}/`)
+            fetch(`https://oldsaratov.ru/api/node/${currentFeature.properties.item.id}/`)
                 .then((response) => response.json())
                 .then((data) => {
                     details = data;
@@ -32,13 +32,13 @@
     {#if currentFeature}
         <div class="content-container">
             <div class="item-image">
-                <h4>{currentFeature.properties.items[0].title}</h4>
-                <a target="_blank" href="{currentFeature.properties.items[0].url}">
-                    <img src="{currentFeature.properties.items[0].photoUrl}" alt="{currentFeature.properties.items[0].title}">
+                <h4>{currentFeature.properties.item.title}</h4>
+                <a target="_blank" href="{currentFeature.properties.item.url}">
+                    <img src="{currentFeature.properties.item.photoUrl}" alt="{currentFeature.properties.item.title}">
                 </a>
             </div>
             <div class="item-period">
-                <Period bind:periodFrom={currentFeature.properties.items[0].periodFrom} bind:periodTo={currentFeature.properties.items[0].periodTo}/>
+                <Period bind:periodFrom={currentFeature.properties.item.periodFrom} bind:periodTo={currentFeature.properties.item.periodTo}/>
             </div>
             <div class="item-description">
                 {#if details && details.body && details.body.und}
@@ -48,7 +48,7 @@
                 {/if}
             </div>
             <div class="item-footer">
-                <a class="button" target="_blank" href="{currentFeature.properties.items[0].url}">Открыть ❯</a>
+                <a class="button" target="_blank" href="{currentFeature.properties.item.url}">Открыть ❯</a>
             </div>
         </div>
     {:else}
