@@ -30,17 +30,26 @@
                 maxZoom: 20,
             }
         );
+        
+        let osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            tileSize: 512,
+            zoomOffset: -1,
+            minZoom: 10,
+            maxZoom: 20,
+            attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        });
 
         let yandexSatellite = new Yandex('yandex#hybrid')
 
         let m = L.map(container, {
             preferCanvas: true,
-            layers: [mapboxLayer]
+            layers: [osmLayer]
         }).setView(initialView, 14);
 
         let baseLayers = {
-            'Карта ФСС': mapboxLayer,
-            'Яндекс.Карта (спутник)': yandexSatellite
+            'Обычная карта': osmLayer,
+            'Яндекс.Карта (спутник)': yandexSatellite,
+            'Стандартная карта ФСС': mapboxLayer,
         };
         L.control.layers(baseLayers).addTo(m);
 
