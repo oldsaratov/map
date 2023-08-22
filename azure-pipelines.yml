@@ -72,7 +72,7 @@ stages:
       displayName: 'Deploy Azure App Service'
       inputs:
         ConnectionType: 'AzureRM'
-        azureSubscription: 'Visual Studio Enterprise Subscription – MPN(1)(32bc49e3-a2f8-4b45-90a3-0837c07ba3df)'
+        azureSubscription: 'Visual Studio Enterprise Subscription – MPN(32bc49e3-a2f8-4b45-90a3-0837c07ba3df)'
         appType: 'webAppLinux'
         WebAppName: 'oldsaratov-map'
         packageForLinux: '$(Pipeline.Workspace)/oldsaratov-map.webapp/**/*.zip'
