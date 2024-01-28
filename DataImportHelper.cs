@@ -13,7 +13,7 @@ public static class DataImportHelper
     {
         var currentFolder = AppContext.BaseDirectory;
 
-        var path = $"{currentFolder}photos.csv";
+        var path = $"{currentFolder}csv.csv";
         
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {

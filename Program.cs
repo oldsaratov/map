@@ -1,10 +1,7 @@
-using H3;
-using H3.Extensions;
 using Microsoft.AspNetCore.Http.Json;
 using NetTopologySuite;
 using NetTopologySuite.Features;
 using OldsaratovMap;
-using OldsaratovMap.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
